@@ -1,0 +1,101 @@
+# Online_Retail_Segmentation
+
+create database ors;
+use ors;
+# Query 1: Define meta data in mysql workbench
+CREATE TABLE online_retial_data(
+  retail_id int NOT NULL AUTO_INCREMENT,
+  InvoiceNo varchar(45) DEFAULT NULL,
+  StockCode varchar(45) DEFAULT NULL,
+  Description varchar(45) DEFAULT NULL,
+  Quantity varchar(45) DEFAULT NULL,
+  InvoiceDate varchar(45) DEFAULT NULL,
+  UnitPrice varchar(45) DEFAULT NULL,
+  CustomerID varchar(45) DEFAULT NULL,
+  Country varchar(45) DEFAULT NULL,
+  PRIMARY KEY (retail_id)
+) 
+SELECT * FROM ors.online_retial_data;
+Alter table ors.online_retial_data
+drop column online_retialcol;
+
+# Query 2: What is the distribution of order values across all customers in the dataset?
+SELECT CustomerID, count(Quantity)
+FROM ors.online_retial_data
+GROUP BY CustomerID;
+
+# Query 3: How many unique products has each customer purchased?
+SELECT CustomerID, COUNT(DISTINCT StockCode) AS UniqueProductsPurchased
+FROM online_retial_data
+GROUP BY CustomerID;
+
+# Query 4: Which customers have only made a single purchase from the company?
+SELECT CustomerID, COUNT(DISTINCT InvoiceNo) AS NumberOfPurchases, SUM(Quantity) AS TotalQuantityPurchased
+FROM online_retial_data
+GROUP BY CustomerID
+HAVING COUNT(DISTINCT InvoiceNo) = 1;
+
+# Query 5: Which products are most commonly purchased together by customers in the dataset?
+SELECT GROUP_CONCAT(DISTINCT Description) AS Products,
+       COUNT(*) AS Count_Products
+FROM online_retial_data
+GROUP BY InvoiceNo
+HAVING COUNT(*) > 1
+LIMIT 25;
+
+# Subqueries
+# Query 6: Customer Segmentation by Purchase Frequency
+# identify your most loyal customers and those who need more attention.
+SELECT CustomerID,
+       CASE
+           WHEN COUNT(DISTINCT InvoiceNo) >= 10 THEN 'High'
+           WHEN COUNT(DISTINCT InvoiceNo) >= 5 THEN 'Medium'
+           ELSE 'Low'
+       END AS Purchase_Segment
+FROM online_retial_data
+GROUP BY CustomerID;
+
+# Query 7: Average Order Value by Country
+# Calculate the average order value for each country to identify where your most valuable customers are located.
+SELECT Country,
+AVG(Order_Values) AS Avg_Order_Values
+FROM (
+    SELECT Country, InvoiceNo, SUM(Quantity * UnitPrice) AS Order_Values
+    FROM online_retial_data
+    GROUP BY Country, InvoiceNo
+) AS total_Orders
+GROUP BY Country
+ORDER BY Avg_Order_Values DESC;
+
+# Query 8: Customer Churn Analysis
+# Identify customers who haven't made a purchase in a specific period (e.g., last 6 months) to assess churn.
+SELECT CustomerID
+FROM online_retial_data
+WHERE CustomerID IS NOT NULL
+GROUP BY CustomerID
+HAVING MAX(InvoiceDate) < DATE_SUB(NOW(), INTERVAL 6 MONTH);
+
+# Query 8: Product Affinity Analysis
+# Determine which products are often purchased together by calculating the correlation between product purchases.
+SELECT p1.Description AS Pro1,
+       p2.Description AS Pro2,
+       COUNT(DISTINCT o1.InvoiceNo) AS Correlation
+FROM online_retial_data o1
+JOIN online_retial_data o2 ON o1.InvoiceNo = o2.InvoiceNo AND o1.Description < o2.Description
+JOIN online_retial_data p1 ON o1.InvoiceNo = p1.InvoiceNo AND p1.Description = Product1_Description
+JOIN online_retial_data p2 ON o2.InvoiceNo = p2.InvoiceNo AND p2.Description = Product2_Description
+GROUP BY p1.Description, p2.Description
+ORDER BY Correlation DESC;
+
+# Query 8: Time-based Analysis
+# Explore trends in customer behavior over time, such as monthly or quarterly sales patterns.
+SELECT YEAR(InvoiceDate) AS SalesYear,
+       MONTH(InvoiceDate) AS SalesMonth,
+       SUM(T_Price) AS TotalSales
+FROM (
+    SELECT InvoiceDate, SUM(Quantity * UnitPrice) AS T_Price
+    FROM online_retial_data
+    GROUP BY InvoiceDate
+) AS T_Invoice
+GROUP BY SalesYear, SalesMonth
+ORDER BY SalesYear, SalesMonth;
