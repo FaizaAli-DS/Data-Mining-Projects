@@ -1,8 +1,6 @@
-# Online_Retail_Segmentation
-
 create database ors;
 use ors;
-# Query 1: Define meta data in mysql workbench
+# Query 1: Define meta data in MySQL workbench
 CREATE TABLE online_retial_data(
   retail_id int NOT NULL AUTO_INCREMENT,
   InvoiceNo varchar(45) DEFAULT NULL,
@@ -75,17 +73,18 @@ WHERE CustomerID IS NOT NULL
 GROUP BY CustomerID
 HAVING MAX(InvoiceDate) < DATE_SUB(NOW(), INTERVAL 6 MONTH);
 
-# Query 8: Product Affinity Analysis
+# Query 9: Product Affinity Analysis
 # Determine which products are often purchased together by calculating the correlation between product purchases.
 SELECT p1.Description AS Pro1,
        p2.Description AS Pro2,
        COUNT(DISTINCT o1.InvoiceNo) AS Correlation
 FROM online_retial_data o1
 JOIN online_retial_data o2 ON o1.InvoiceNo = o2.InvoiceNo AND o1.Description < o2.Description
-JOIN online_retial_data p1 ON o1.InvoiceNo = p1.InvoiceNo AND p1.Description = Product1_Description
-JOIN online_retial_data p2 ON o2.InvoiceNo = p2.InvoiceNo AND p2.Description = Product2_Description
+JOIN online_retial_data p1 ON o1.InvoiceNo = p1.InvoiceNo AND p1.Description = o1.Description
+JOIN online_retial_data p2 ON o2.InvoiceNo = p2.InvoiceNo AND p2.Description = o2.Description
 GROUP BY p1.Description, p2.Description
 ORDER BY Correlation DESC;
+
 
 # Query 8: Time-based Analysis
 # Explore trends in customer behavior over time, such as monthly or quarterly sales patterns.
