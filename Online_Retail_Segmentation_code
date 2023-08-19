@@ -1,6 +1,6 @@
 create database ors;
 use ors;
-# Query 1: Define meta data in MySQL workbench
+# Query 1: Define meta data in mysql workbench
 CREATE TABLE online_retial_data(
   retail_id int NOT NULL AUTO_INCREMENT,
   InvoiceNo varchar(45) DEFAULT NULL,
@@ -18,7 +18,7 @@ Alter table ors.online_retial_data
 drop column online_retialcol;
 
 # Query 2: What is the distribution of order values across all customers in the dataset?
-SELECT CustomerID, count(Quantity)
+SELECT CustomerID, SUM(Quantity * UnitPrice) AS TotalOrderValue
 FROM ors.online_retial_data
 GROUP BY CustomerID;
 
@@ -75,16 +75,14 @@ HAVING MAX(InvoiceDate) < DATE_SUB(NOW(), INTERVAL 6 MONTH);
 
 # Query 9: Product Affinity Analysis
 # Determine which products are often purchased together by calculating the correlation between product purchases.
-SELECT p1.Description AS Pro1,
-       p2.Description AS Pro2,
-       COUNT(DISTINCT o1.InvoiceNo) AS Correlation
+SELECT p1.Description AS Product1,p2.Description AS Product2, 
+COUNT(DISTINCT o1.InvoiceNo) AS Correlation
 FROM online_retial_data o1
 JOIN online_retial_data o2 ON o1.InvoiceNo = o2.InvoiceNo AND o1.Description < o2.Description
 JOIN online_retial_data p1 ON o1.InvoiceNo = p1.InvoiceNo AND p1.Description = o1.Description
 JOIN online_retial_data p2 ON o2.InvoiceNo = p2.InvoiceNo AND p2.Description = o2.Description
-GROUP BY p1.Description, p2.Description
+GROUP BY Product1, Product2
 ORDER BY Correlation DESC;
-
 
 # Query 8: Time-based Analysis
 # Explore trends in customer behavior over time, such as monthly or quarterly sales patterns.
